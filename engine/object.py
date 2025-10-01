@@ -1,17 +1,28 @@
-#object.py
-from engine.engine import Engine
-from animation import Segment, Point, Animation
+# object.py
+from engine.animation import Segment, Point, Animation
 from matplotlib.axes import Axes
 import math
 
+
 class EngineObject:
-    def __init__(self, animation: Animation, engine: Engine, *, start_point: Point, size: float = 1, rotation: float = 0.0, pivot: Point = Point(0, 0)) -> None:
+    def __init__(
+        self,
+        animation: Animation,
+        engine,
+        *,
+        start_point: Point,
+        size: float = 1,
+        rotation: float = 0.0,
+        pivot: Point = Point(0, 0),
+        fps: int = 24
+    ) -> None:
         self.engine = engine
         self.start_point = start_point
         self.size = size
         self.animation = animation
         self.rotation = rotation
         self.pivot = pivot
+        self.fps = fps
 
     def _transform(self, segment: Segment) -> Segment:
         """
@@ -19,7 +30,7 @@ class EngineObject:
         """
         # 1) rotate local endpoints about local pivot
         p1r = self._rotate(segment.start, self.rotation, self.pivot)
-        p2r = self._rotate(segment.end,   self.rotation, self.pivot)
+        p2r = self._rotate(segment.end, self.rotation, self.pivot)
 
         # 2) scale (uniform)
         p1s = Point(p1r.x * self.size, p1r.y * self.size)
@@ -32,7 +43,7 @@ class EngineObject:
         y2 = self.start_point.y + p2s.y
 
         return Segment(Point(x1, y1), Point(x2, y2), segment.line)
-    
+
     @staticmethod
     def _rotate(p: Point, angle: float, origin: Point) -> Point:
         """Rotate point p by angle (radians) around origin (both in local space)."""
@@ -43,22 +54,23 @@ class EngineObject:
             origin.y + dx * s + dy * c,
         )
 
-    def draw(self, ax: Axes, frame_clock: int) -> None:
+    def draw(self, ax: Axes, frame_clock: int, engine_fps: int = 24) -> None:
         """
         The default draw function for EngineObject. Can be overwritten for more advanced shapes with rotation ect.
         """
-        for segment in self.animation.get_current_frame(frame_clock):
+        for segment in self.animation.get_current_frame(
+            frame_clock, self.fps, engine_fps
+        ):
             transformed_segment = self._transform(segment)
             ax.plot(
-            [transformed_segment.start.x, transformed_segment.end.x],
-            [transformed_segment.start.y, transformed_segment.end.y],
-            color=segment.line.color,
-            linestyle=segment.line.style,
-            marker=segment.line.marker,
-            linewidth=segment.line.weight,
-            alpha=segment.line.alpha,
+                [transformed_segment.start.x, transformed_segment.end.x],
+                [transformed_segment.start.y, transformed_segment.end.y],
+                color=segment.line.color,
+                linestyle=segment.line.style,
+                marker=segment.line.marker,
+                linewidth=segment.line.weight,
+                alpha=segment.line.alpha,
             )
-    
 
     def update(self, frame_clock: int):
         """

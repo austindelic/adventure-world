@@ -5,8 +5,10 @@ Author: Austin Delic (austin@austindelic.com)
 
 from enum import StrEnum, auto
 from typing import override
-from engine.animation import Animation, Frame, Line, Point, Segment
-from engine.object import EngineObject, ClockProtocol
+from src.animation import Animation, Frame, Line, Point, Segment
+from src.entity import EngineEntity
+from src.clock import ClockProtocol
+from src.entity import Ride
 
 
 class FerrisWheelState(StrEnum):
@@ -104,7 +106,7 @@ def _frames() -> list[Frame]:
     return [base + hub]
 
 
-class FerrisWheel(EngineObject):
+class FerrisWheel(Ride):
     def __init__(self) -> None:
         # 1) immutable base geometry (animation frames)
         anim = Animation(_frames())
@@ -118,7 +120,7 @@ class FerrisWheel(EngineObject):
 
     @override
     def update(self, clock: ClockProtocol) -> None:
-        # animation frame selection uses EngineObject.fps (12 fps here)
+        # animation frame selection uses Eng ineEntity.fps (12 fps here)
         # motion uses real seconds so it’s frame-rate independent
         if self.state is FerrisWheelState.SPINNING:
             # reassign a NEW Point (Point is frozen/immutable)

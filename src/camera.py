@@ -15,10 +15,11 @@ class CameraProtocol(Protocol):
 
 @dataclass(slots=True)
 class Camera(CameraProtocol):
-    x: float = 0.5  # camera position in world coords
-    y: float = 0.0
+    x: float = 0  # camera position in world coords
+    y: float = -10
+    z: float = 1
     zoom: float = 1.0  # 1.0 = no zoom
-    rot: float = 0.0  # optional rotation (radians), 0 = none
+    focal_lenght: float = 1
 
     def to_view(self, p: Point) -> Point:
         # world -> camera space (translate so camera is origin)

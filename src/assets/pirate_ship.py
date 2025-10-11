@@ -6,8 +6,9 @@ Author: Austin Delic (austin@austindelic.com)
 import math
 from enum import StrEnum, auto
 from typing import override
-from engine.animation import Animation, Frame, Line, Point, Segment
-from engine.object import EngineObject, ClockProtocol
+from src.animation import Animation, Frame, Line, Point, Segment
+from src.engine import EngineEntity
+from src.clock import ClockProtocol
 
 
 class ShipState(StrEnum):
@@ -46,7 +47,7 @@ def _geometry() -> Frame:
     return hull + support
 
 
-class PirateShip(EngineObject):
+class PirateShip(EngineEntity):
     def __init__(self) -> None:
         base = _geometry()
         super().__init__(

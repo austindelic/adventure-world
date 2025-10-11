@@ -16,7 +16,7 @@ class ClockProtocol(Protocol):
     def frame(self) -> int: ...
 
 
-class CLock(ClockProtocol):
+class Clock(ClockProtocol):
     def __init__(self) -> None:
         self._t0 = perf_counter()
         self._last = self._t0

@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from typing import Literal
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(slots=True)
 class Point:
     x: float
     y: float

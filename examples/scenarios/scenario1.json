@@ -1,0 +1,24 @@
+
+{
+  "name": "Adventure World Demo",
+  "background": "day",
+  "rules": {
+    "max_guests": 120,
+    "spawn_rate": 1.2
+  },
+  "rides": [
+    {
+      "type": "PirateShip",
+      "position": {"x": 0.5, "y": 0.4},
+      "max_capacity": 16,
+      "ride_time": 30
+    },
+    {
+      "type": "FerrisWheel",
+      "position": {"x": 0.75, "y": 0.6},
+      "max_capacity": 20,
+      "ride_time": 45
+    }
+  ]
+}
+

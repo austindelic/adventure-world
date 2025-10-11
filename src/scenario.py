@@ -11,7 +11,7 @@ RIDE_CLASSES = {
 }
 
 
-class MapPosition(BaseModel):
+class MapPositionModel(BaseModel):
     x: float
     y: float
     z: Optional[float] = None
@@ -19,7 +19,7 @@ class MapPosition(BaseModel):
 
 class RideModel(BaseModel):
     type: Literal["FerrisWheel", "PirateShip"]
-    position: MapPosition
+    position: MapPositionModel
     max_capacity: int = Field(..., ge=0)
     ride_time: float = Field(..., ge=0)
 
@@ -27,17 +27,7 @@ class RideModel(BaseModel):
 class RulesModel(BaseModel):
     max_guests: int = Field(..., ge=0)
     spawn_rate: float = Field(..., ge=0)
-
-
-class ScenarioModel(BaseModel):
-    """Pure configuration (JSON schema level)."""
-
-    name: str
-    background: Literal["day", "night"] = "day"
-    rules: RulesModel = Field(
-        default_factory=lambda: RulesModel(max_guests=100, spawn_rate=1.0)
-    )
-    rides: List[RideModel] = Field(default_factory=list)
+    target_fps: int = Field(..., ge=0)
 
 
 class Scenario:
@@ -56,20 +46,22 @@ class Scenario:
         return f"<Scenario {self.name!r}, rides={len(self.rides)}>"
 
 
-class ScenarioBuilder:
-    """Converts a validated ScenarioModel into a live Scenario with runtime objects."""
+class ScenarioModel(BaseModel):
+    """Pure configuration (JSON schema level)."""
 
-    def __init__(self, model: ScenarioModel):
-        self.model = model
+    name: str
+    background: Literal["day", "night"] = "day"
+    rules: RulesModel
+    rides: List[RideModel] = Field(default_factory=list)
 
     def build(self) -> Scenario:
         scenario = Scenario(
-            name=self.model.name,
-            background=self.model.background,
-            rules=self.model.rules,
+            name=self.name,
+            background=self.background,
+            rules=self.rules,
         )
 
-        for ride_data in self.model.rides:
+        for ride_data in self.rides:
             cls = RIDE_CLASSES[ride_data.type]
             ride_obj = cls()
             ride_obj.pose_position = Point(

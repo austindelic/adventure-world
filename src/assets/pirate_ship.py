@@ -7,7 +7,7 @@ import math
 from enum import StrEnum, auto
 from typing import override
 from src.animation import Animation, Frame, Line, Point, Segment
-from src.engine import EngineEntity
+from src.entity import EngineEntity
 from src.clock import ClockProtocol
 
 

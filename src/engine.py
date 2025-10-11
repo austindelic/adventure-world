@@ -9,6 +9,8 @@ from math import cos, exp, isfinite, sin
 import matplotlib.pyplot as plt
 from matplotlib.collections import LineCollection
 
+from src.scenario import Scenario
+
 from .animation import Frame, Point
 from .camera import Camera
 from .entity import EngineEntity
@@ -32,6 +34,28 @@ class Engine:
         self.clock = Clock()
         self.camera = Camera()
         self.background = None
+        self.fig, self.ax = plt.subplots()
+        self.ax.set_aspect("equal", adjustable="box")
+        self.ax.set_xlim(self.xlim)
+        self.ax.set_ylim(self.ylim)
+
+        self._move_speed = 1.0
+        self._zoom_rate = 1.5
+        self._rot_speed = 1.0
+        self._keys_down: set[str] = set()
+
+        self.fig.canvas.mpl_connect("key_press_event", self._on_key_press)
+        self.fig.canvas.mpl_connect("key_release_event", self._on_key_release)
+        self.cull_pad_frac = 0.05
+
+    def ghsdgfjshgdf(self, scernario: Scenario) -> None:
+        self.rides = scernario.rides
+        self.xlim = 1
+        self.ylim = 1
+        self.fps_target = scernario.rules.target_fps
+        self.clock = Clock()
+        self.camera = Camera()
+        self.background = scernario.background
         self.fig, self.ax = plt.subplots()
         self.ax.set_aspect("equal", adjustable="box")
         self.ax.set_xlim(self.xlim)

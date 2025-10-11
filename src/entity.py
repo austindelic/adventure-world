@@ -3,13 +3,10 @@ File: object.py
 Author: Austin Delic (austin@austindelic.com)
 """
 
-from matplotlib.axes import Axes
-from shapely.lib import bounds
-from .animation import Segment, Point, Animation, Frame
 from math import cos, sin
+
+from .animation import Animation, Frame, Point, Segment
 from .clock import ClockProtocol
-from .camera import Camera
-from math import isfinite
 
 
 class EngineEntity:

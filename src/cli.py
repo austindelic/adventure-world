@@ -3,7 +3,7 @@ from click_option_group import optgroup, RequiredMutuallyExclusiveOptionGroup
 from typing import Optional
 
 import json
-from .scenario import RulesModel, ScenarioModel, ScenarioBuilder
+from .scenario import RulesModel, ScenarioModel
 
 
 @click.command()
@@ -39,7 +39,7 @@ def cli(interactive_mode: bool, input_file_name: Optional[str]):
             rides=[],
         )
 
-        scenario = ScenarioBuilder(model).build()
+        scenario = model.build()
         click.echo("\n✅ Scenario created successfully!")
         _print_scenario(scenario)
         return
@@ -54,13 +54,11 @@ def cli(interactive_mode: bool, input_file_name: Optional[str]):
             data = json.load(f)
 
         model = ScenarioModel.model_validate(data)
-        scenario = ScenarioBuilder(model).build()
+        scenario = model.build()
 
         click.echo("\n✅ Scenario loaded successfully!")
         _print_scenario(scenario)
         return
-
-    raise click.UsageError("No mode selected. Use -i or -f.")
 
 
 # ──────────────────────────────────────────────
@@ -80,7 +78,7 @@ def _print_scenario(scenario):
         for ride in scenario.rides:
             # Assuming each ride has .__class__.__name__ and .start_point
             name = ride.__class__.__name__
-            pos = getattr(ride, "start_point", None)
+            pos = ride.start_point
             click.echo(f"   - {name} @ ({pos.x:.2f}, {pos.y:.2f})")
 
     click.echo("──────────────────────────────")

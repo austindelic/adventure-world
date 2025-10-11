@@ -17,12 +17,12 @@ class Engine:
     def __init__(self, scenario: Scenario) -> None:
         self.rides = scenario.rides
         self.eng_objects: list[EngineEntity] = []
+        self.background: EngineEntity | None = scenario.background
         self.xlim = 1
         self.ylim = 1
         self.fps_target = scenario.rules.target_fps
         self.clock = Clock()
         self.camera = Camera()
-        self.background = scenario.background
         self.fig, self.ax = plt.subplots()
         self.ax.set_aspect("equal", adjustable="box")
         self.ax.set_xlim(self.xlim)
@@ -95,6 +95,7 @@ class Engine:
 
     # ---------- Core Draw ----------
     def _draw_frame(self, frame: Frame):
+        """Draw a single animation frame (Segments + Fills)."""
         lines, colors, widths, alphas = [], [], [], []
 
         for draw in frame:
@@ -148,30 +149,47 @@ class Engine:
             and (ey_lo <= p.y <= ey_hi)
         )
 
-    def _draw_objects(self):
+    # ---------- Frame Collection + Draw ----------
+    def _collect_frames(self) -> Frame:
+        """Collect all frames (background + all objects) before drawing."""
+        frames: list[Frame] = []
+
+        # Background first (if any)
+        if self.background:
+            frames.append(self.background.get_frame(self.clock.frame, self.fps_target))
+
+        # Then all entities
+        for obj in self.eng_objects:
+            frames.append(obj.get_frame(self.clock.frame, self.fps_target))
+
+        # Flatten all drawables into one frame
+        combined: Frame = [draw for frame in frames for draw in frame]
+        return combined
+
+    def _draw_scene(self):
+        """Draw all collected frames at once."""
         self.ax.clear()
-        self.ax.set_aspect("equal", adjustable="box")
-        self.ax.set_xlim(self.xlim)
-        self.ax.set_ylim(self.ylim)
 
         self._apply_camera_controls()
 
-        # Collect all frames from objects
-        all_frames = []
-        for obj in self.eng_objects:
-            obj.update(self.clock)
-            frame = obj.get_frame(self.clock.frame, self.fps_target)
-            all_frames.append(frame)
+        full_frame = self._collect_frames()
+        self._draw_frame(full_frame)
 
-        # Draw all frames
-        for frame in all_frames:
-            self._draw_frame(frame)
-
+        # Refresh display
         self.fig.canvas.draw_idle()
         self.fig.canvas.flush_events()
 
+    # ---------- Update Cycle ----------
+    def _update_all(self):
+        """Update logic for all entities after drawing."""
+        if self.background:
+            self.background.update(self.clock)
+        for obj in self.eng_objects:
+            obj.update(self.clock)
+
     # ---------- Run Loop ----------
     def run(self, fps_target: int | None = None):
+        """Main render/update loop."""
         if fps_target is not None:
             self.fps_target = fps_target
         target_dt = 1.0 / self.fps_target
@@ -179,14 +197,24 @@ class Engine:
 
         while plt.fignum_exists(self.fig.number):
             frame_start = time.perf_counter()
+
+            # Tick timing
             self.clock.tick()
-            self._draw_objects()
+
+            # ---- Collect + Draw all ----
+            self._draw_scene()
+
+            # ---- Update after draw ----
+            self._update_all()
+
+            # ---- FPS sync ----
             elapsed = time.perf_counter() - frame_start
             sleep_for = target_dt - elapsed
             if sleep_for > 0:
                 time.sleep(sleep_for)
+
             actual = time.perf_counter() - frame_start
             if actual > 0:
                 print(f"FPS: {1.0 / actual:.2f}")
-            plt.pause(1e-6)
 
+            plt.pause(1e-6)

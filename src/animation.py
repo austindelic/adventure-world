@@ -4,7 +4,7 @@ Author: Austin Delic (austin@austindelic.com)
 """
 
 from dataclasses import dataclass
-from typing import Literal
+from typing import Literal, Union
 
 
 @dataclass(slots=True)
@@ -39,13 +39,16 @@ class Segment:
     line: Line
 
 
-type Frame = list[Segment]
+@dataclass(slots=True)
+class Fill:
+    points: list[Point]
+    color: Literal["b", "g", "r", "c", "m", "y", "k", "w"] = "b"
+    alpha: float = 1.0
+    edgecolor: str | None = None
 
 
-class ThisIsATest:
-    pp: Point
-    dd: Point
-    gg: Line
+type Draw = Union[Segment, Fill]
+type Frame = list[Draw]
 
 
 class Animation:

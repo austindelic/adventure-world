@@ -1,61 +1,28 @@
-"""
-File: engine.py
-Author: Austin Delic (austin@austindelic.com)
-"""
-
 from __future__ import annotations
 import time
 from math import cos, exp, isfinite, sin
 import matplotlib.pyplot as plt
 from matplotlib.collections import LineCollection
+from matplotlib.patches import Polygon
 
 from src.scenario import Scenario
 
-from .animation import Frame, Point
+from .animation import Frame, Point, Segment, Fill
 from .camera import Camera
 from .entity import EngineEntity
 from .clock import Clock
 
 
 class Engine:
-    def __init__(
-        self,
-        eng_objects: list[EngineEntity] | None = None,
-        xlim: tuple[float, float] = (0.0, 1.0),
-        ylim: tuple[float, float] = (0.0, 1.0),
-        fps_target: int = 24,
-    ) -> None:
-        self.eng_objects: list[EngineEntity] = (
-            [] if eng_objects is None else eng_objects
-        )
-        self.xlim = xlim
-        self.ylim = ylim
-        self.fps_target = fps_target
-        self.clock = Clock()
-        self.camera = Camera()
-        self.background = None
-        self.fig, self.ax = plt.subplots()
-        self.ax.set_aspect("equal", adjustable="box")
-        self.ax.set_xlim(self.xlim)
-        self.ax.set_ylim(self.ylim)
-
-        self._move_speed = 1.0
-        self._zoom_rate = 1.5
-        self._rot_speed = 1.0
-        self._keys_down: set[str] = set()
-
-        self.fig.canvas.mpl_connect("key_press_event", self._on_key_press)
-        self.fig.canvas.mpl_connect("key_release_event", self._on_key_release)
-        self.cull_pad_frac = 0.05
-
-    def ghsdgfjshgdf(self, scernario: Scenario) -> None:
-        self.rides = scernario.rides
+    def __init__(self, scenario: Scenario) -> None:
+        self.rides = scenario.rides
+        self.eng_objects: list[EngineEntity] = []
         self.xlim = 1
         self.ylim = 1
-        self.fps_target = scernario.rules.target_fps
+        self.fps_target = scenario.rules.target_fps
         self.clock = Clock()
         self.camera = Camera()
-        self.background = scernario.background
+        self.background = scenario.background
         self.fig, self.ax = plt.subplots()
         self.ax.set_aspect("equal", adjustable="box")
         self.ax.set_xlim(self.xlim)
@@ -130,22 +97,41 @@ class Engine:
     def _draw_frame(self, frame: Frame):
         lines, colors, widths, alphas = [], [], [], []
 
-        for seg in frame:
-            s = self.camera.to_view(seg.start)
-            e = self.camera.to_view(seg.end)
+        for draw in frame:
+            # ---- Handle line segments ----
+            if isinstance(draw, Segment):
+                s = self.camera.to_view(draw.start)
+                e = self.camera.to_view(draw.end)
 
-            # Cull if both endpoints are off-screen
-            if not self._in_view(s) and not self._in_view(e):
-                continue
+                # Skip if both endpoints are off-screen
+                if not self._in_view(s) and not self._in_view(e):
+                    continue
 
-            lines.append([(s.x, s.y), (e.x, e.y)])
-            colors.append(seg.line.color)
-            widths.append(seg.line.weight)
-            alphas.append(seg.line.alpha)
+                lines.append([(s.x, s.y), (e.x, e.y)])
+                colors.append(draw.line.color)
+                widths.append(draw.line.weight)
+                alphas.append(draw.line.alpha)
 
+            # ---- Handle polygon fills ----
+            elif isinstance(draw, Fill):
+                transformed = [self.camera.to_view(p) for p in draw.points]
+                if all(not self._in_view(p) for p in transformed):
+                    continue
+
+                polygon = Polygon(
+                    [(p.x, p.y) for p in transformed],
+                    closed=True,
+                    facecolor=draw.color,
+                    edgecolor=draw.edgecolor or draw.color,
+                    alpha=draw.alpha,
+                )
+                self.ax.add_patch(polygon)
+
+        # ---- Batch render all line segments ----
         if lines:
             lc = LineCollection(lines, colors=colors, linewidths=widths, alpha=None)
-            lc.set_alpha(alphas[0] if len(set(alphas)) == 1 else None)
+            if len(set(alphas)) == 1:
+                lc.set_alpha(alphas[0])
             self.ax.add_collection(lc)
 
     def _in_view(self, p: Point) -> bool:
@@ -177,7 +163,7 @@ class Engine:
             frame = obj.get_frame(self.clock.frame, self.fps_target)
             all_frames.append(frame)
 
-        # Batch draw all frames
+        # Draw all frames
         for frame in all_frames:
             self._draw_frame(frame)
 
@@ -203,3 +189,4 @@ class Engine:
             if actual > 0:
                 print(f"FPS: {1.0 / actual:.2f}")
             plt.pause(1e-6)
+

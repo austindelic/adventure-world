@@ -1,6 +1,6 @@
 {
   "name": "Adventure World Demo",
-  "background": "day",
+  "background": "Day",
   "rules": {
     "max_guests": 120,
     "spawn_rate": 1.2,

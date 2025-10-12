@@ -3,6 +3,8 @@ from click_option_group import optgroup, RequiredMutuallyExclusiveOptionGroup
 from typing import Optional
 
 import json
+
+from src.assets.person import Person
 from .scenario import RulesModel, ScenarioModel
 from .engine import Engine
 

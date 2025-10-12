@@ -10,8 +10,44 @@
     {
       "type": "PirateShip",
       "position": {
-        "x": 0.0,
-        "y": 0.0
+        "x": 0,
+        "y": 10
+      },
+      "max_capacity": 16,
+      "ride_time": 30
+    },
+    {
+      "type": "PirateShip",
+      "position": {
+        "x": 0,
+        "y": 20
+      },
+      "max_capacity": 16,
+      "ride_time": 30
+    },
+    {
+      "type": "PirateShip",
+      "position": {
+        "x": 0,
+        "y": 30
+      },
+      "max_capacity": 16,
+      "ride_time": 30
+    },
+    {
+      "type": "PirateShip",
+      "position": {
+        "x": 0,
+        "y": 40
+      },
+      "max_capacity": 16,
+      "ride_time": 30
+    },
+    {
+      "type": "PirateShip",
+      "position": {
+        "x": 0,
+        "y": 50
       },
       "max_capacity": 16,
       "ride_time": 30
@@ -19,11 +55,11 @@
     {
       "type": "FerrisWheel",
       "position": {
-        "x": 0.75,
-        "y": 0.6
+        "x": 0,
+        "y": 60
       },
-      "max_capacity": 20,
-      "ride_time": 45
+      "max_capacity": 16,
+      "ride_time": 30
     }
   ]
 }

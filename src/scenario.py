@@ -1,16 +1,17 @@
 # scenario_models.py
 from pydantic import BaseModel, Field
-from typing import List, Literal, Optional
+from typing import List, Literal
+
 
 from .assets.backgrounds import Day
 from .entity import EngineEntity
 from .assets.rides import FerrisWheel, PirateShip
+from src.animation import Point
 
 
 class MapPositionModel(BaseModel):
     x: float
     y: float
-    z: Optional[float] = None
 
 
 class RideModel(BaseModel):
@@ -62,9 +63,17 @@ class ScenarioModel(BaseModel):
         for ride_data in self.rides:
             # TODO
             if ride_data.type == "FerrisWheel":
-                engine_entity_rides.append(FerrisWheel())
+                engine_entity_rides.append(
+                    FerrisWheel(
+                        position=Point(ride_data.position.x, ride_data.position.y)
+                    )
+                )
             elif ride_data.type == "PirateShip":
-                engine_entity_rides.append(PirateShip())
+                engine_entity_rides.append(
+                    PirateShip(
+                        position=Point(ride_data.position.x, ride_data.position.y)
+                    )
+                )
             else:
                 raise ValueError("Invalid ride")
 

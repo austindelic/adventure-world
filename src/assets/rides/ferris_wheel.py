@@ -5,6 +5,7 @@ Author: Austin Delic (austin@austindelic.com)
 
 from enum import StrEnum, auto
 from typing import override
+from src.entity import Size
 from src.animation import Animation, Frame, Line, Point, Segment
 from src.clock import ClockProtocol
 from .ride import Ride
@@ -106,12 +107,17 @@ def _frames() -> list[Frame]:
 
 
 class FerrisWheel(Ride):
-    def __init__(self) -> None:
+    def __init__(self, position: Point) -> None:
         # 1) immutable base geometry (animation frames)
         anim = Animation(_frames())
 
         # 2) world pose (start at origin, scale down a bit)
-        super().__init__(animation=anim, start_point=Point(0.0, 0.0), size=0.2, fps=12)
+        super().__init__(
+            animation=anim,
+            position=position,
+            size=Size(10, 20, 5),
+            fps=12,
+        )
 
         # 3) behaviour/state
         self.state: FerrisWheelState = FerrisWheelState.SPINNING
@@ -123,8 +129,8 @@ class FerrisWheel(Ride):
         # motion uses real seconds so it’s frame-rate independent
         if self.state is FerrisWheelState.SPINNING:
             # reassign a NEW Point (Point is frozen/immutable)
-            self.start_point = Point(
-                self.start_point.x + self._speed * clock.dt, self.start_point.y
+            self.position = Point(
+                self.position.x + self._speed * clock.dt, self.position.y
             )
         else:
             # idle: no movement

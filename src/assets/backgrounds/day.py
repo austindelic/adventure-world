@@ -1,5 +1,5 @@
 from src.animation import Animation, Fill, Frame, Point
-from src.entity import EngineEntity
+from src.entity import EngineEntity, Size
 
 
 class Day(EngineEntity):
@@ -32,5 +32,5 @@ class Day(EngineEntity):
 
         base_frame: Frame = [sky, grass]
         super().__init__(
-            animation=Animation([base_frame]), start_point=Point(0, 0), size=1.0
+            animation=Animation([base_frame]), position=Point(0, 0), size=Size(1, 1, 1)
         )

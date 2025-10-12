@@ -4,7 +4,7 @@ Author: Austin Delic (austin@austindelic.com)
 """
 
 from dataclasses import dataclass
-from typing import Literal, Union
+from typing import Literal
 
 
 @dataclass(slots=True)
@@ -20,16 +20,6 @@ class Line:
     style: Literal["-", "--", "-. ", ":"] = "-"
     marker: Literal["", "o", "s", "^", "v", "x", "+"] = ""
     alpha: float = 1.0
-
-    def __post_init__(self) -> None:
-        if self.color not in {"b", "g", "r", "c", "m", "y", "k", "w"}:
-            raise ValueError("Invalid color")
-        if self.style not in {"-", "--", "-. ", ":"}:
-            raise ValueError("Invalid style")
-        if self.marker not in {"", "o", "s", "^", "v", "x", "+"}:
-            raise ValueError("Invalid marker")
-        if not (0.0 <= self.alpha <= 1.0):
-            raise ValueError("alpha 0..1")
 
 
 @dataclass(slots=True)
@@ -47,7 +37,7 @@ class Fill:
     edgecolor: str | None = None
 
 
-type Draw = Union[Segment, Fill]
+type Draw = Segment | Fill
 type Frame = list[Draw]
 
 

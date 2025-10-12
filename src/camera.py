@@ -1,52 +1,40 @@
-"""
-File: camera.py
-Author: Austin Delic (austin@austindelic.com)
-"""
-
-from typing import Protocol
 from .animation import Point
-from dataclasses import dataclass
-from math import cos, sin
 
 
-class CameraProtocol(Protocol):
-    def to_view(self, p: Point) -> Point: ...
+class Camera:
+    position: Point = Point(0.0, -10)
+    height: float = 1.75  # m
+    zoom: float = 1.0
+    x_movement_speed: float = 0.1
+    y_movement_speed: float = 0.5
+    render_distance_scale: float = 1
+    horizon_speed: float = 1
 
-
-@dataclass(slots=True)
-class Camera(CameraProtocol):
-    x: float = 0  # camera position in world coords
-    y: float = 0
-    z: float = 0
-    zoom: float = 1.0  # 1.0 = no zoom
-    focal_lenght: float = 1
-    rot: float = 0
-
-    def to_view(self, p: Point) -> Point:
-        # world -> camera space (translate so camera is origin)
-        dx = p.x - self.x
-        dy = p.y - self.y
-        # rotate (camera yaw) – optional; keep if you want “look rotation”
-        if self.rot != 0.0:
-            c, s = cos(-self.rot), sin(-self.rot)
-            dx, dy = dx * c - dy * s, dx * s + dy * c
-        # zoom (scale)
-        return Point(dx * self.zoom, dy * self.zoom)
-
-    # Convenience ops
     def move(self, dx: float, dy: float) -> None:
-        self.x += dx
-        self.y += dy
+        """Move camera position by delta."""
+        self.position.x += dx
+        self.position.y += dy
 
     def set_pos(self, x: float, y: float) -> None:
-        self.x = x
-        self.y = y
+        self.position = Point(x, y)
 
     def set_zoom(self, zoom: float) -> None:
-        self.zoom = max(1e-6, zoom)  # avoid zero/neg
+        self.zoom = max(1e-6, zoom)
 
-    def add_zoom(self, dzoom: float) -> None:
-        self.set_zoom(self.zoom + dzoom)
-
-    def set_rot(self, angle_rad: float) -> None:
-        self.rot = angle_rad
+    # ---------- New movement logic ---------- #
+    def update_from_input(self, keys_down: set[str], dt: float) -> None:
+        """
+        Handles top-down panning and forward/backward illusion control.
+        - Up increases _depth_scale (move forward into scene)
+        - Down decreases _depth_scale (move backward)
+        - Left/Right pan across grid
+        """
+        # Forward/backward movement (Up/Down)
+        if "up" in keys_down:
+            self.position.y += self.y_movement_speed
+        if "down" in keys_down:
+            self.position.y -= self.y_movement_speed
+        if "left" in keys_down:
+            self.position.x -= self.x_movement_speed
+        if "right" in keys_down:
+            self.position.x += self.x_movement_speed

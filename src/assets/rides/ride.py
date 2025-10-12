@@ -17,6 +17,6 @@ class Ride(EngineEntity):
         super().__init__(
             animation,
             position=position,
-            size=size,
+            target_size=size,
             fps=fps,
         )

@@ -4,7 +4,8 @@ from typing import Optional
 
 import json
 
-from src.assets.person import Person
+from .animation import Point
+from .assets.person import Person
 from .scenario import RulesModel, ScenarioModel
 from .engine import Engine
 
@@ -56,6 +57,7 @@ def cli(interactive_mode: bool, input_file_name: Optional[str]):
 
     scenario = model.build()
     click.echo("\n✅ Scenario loaded successfully!")
-    print("at engine")
     engine: Engine = Engine(scenario)
+    for number in range(0, 10, 1):
+        engine.add_engine_objects([Person(Point(0, number / 100))])
     engine.run()

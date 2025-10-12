@@ -32,5 +32,7 @@ class Day(EngineEntity):
 
         base_frame: Frame = [sky, grass]
         super().__init__(
-            animation=Animation([base_frame]), position=Point(0, 0), size=Size(1, 1, 1)
+            animation=Animation([base_frame]),
+            position=Point(0, 0),
+            target_size=Size(1, 1, 1),
         )

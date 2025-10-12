@@ -7,6 +7,7 @@ import math
 from enum import StrEnum, auto
 from typing import override
 from src.animation import Animation, Frame, Line, Point, Segment
+from src.assets.rides.ride import Ride
 from src.entity import EngineEntity
 from src.clock import ClockProtocol
 
@@ -44,10 +45,11 @@ def _geometry() -> Frame:
         Segment(Point(0.525, 0.700), Point(0.85, 0.0), r),
         Segment(Point(0.85, 0.0), Point(0.2, 0.0), r),
     ]
+    return [hull + support]
     return hull + support
 
 
-class PirateShip(EngineEntity):
+class PirateShip(Ride):
     def __init__(self) -> None:
         base = _geometry()
         super().__init__(

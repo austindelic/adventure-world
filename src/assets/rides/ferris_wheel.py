@@ -6,9 +6,8 @@ Author: Austin Delic (austin@austindelic.com)
 from enum import StrEnum, auto
 from typing import override
 from src.animation import Animation, Frame, Line, Point, Segment
-from src.entity import EngineEntity
 from src.clock import ClockProtocol
-from src.entity import Ride
+from .ride import Ride
 
 
 class FerrisWheelState(StrEnum):

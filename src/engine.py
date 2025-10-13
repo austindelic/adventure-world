@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import time
+from typing import Protocol
 
 import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
@@ -10,11 +11,29 @@ from src.scenario import Scenario
 
 from .animation import Fill, Frame, Point, Segment
 from .camera import Camera
-from .clock import Clock
+from .clock import Clock, ClockProtocol
 from .entity import EngineEntity
 
 
-class Engine:
+class EngineProtocol(Protocol):
+    """Formal interface describing the minimal Engine API."""
+
+    # --- Core state ---
+    entities: list[EngineEntity]
+    clock: ClockProtocol
+
+    # --- Entity management ---
+    def add_engine_objects(self, engine_objects: list[EngineEntity]) -> None: ...
+
+    # --- Time and update ---
+    def _update_all(self) -> None: ...
+
+    # --- Rendering (optional) ---
+    def _draw_scene(self) -> None: ...
+    def run(self, fps_target: int | None = None) -> None: ...
+
+
+class Engine(EngineProtocol):
     def __init__(self, scenario: Scenario) -> None:
         self.rides = scenario.rides
         self.entities: list[EngineEntity] = scenario.rides

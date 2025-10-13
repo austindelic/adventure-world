@@ -1,15 +1,9 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING
+
+from .animation import Animation, Line, Point, Segment
 from .assets.person import Person
-from src.animation import Frame, Line, Point, Segment
-from src.entity import EngineEntity
-import random
-from src.entity import EngineEntity
-from src.animation import Animation, Point
-
-
-if TYPE_CHECKING:
-    from src.engine import Engine  # avoid circular import
+from .engine import EngineProtocol
+from .entity import EngineEntity
 
 
 class SpawnerEntity(EngineEntity):
@@ -20,7 +14,7 @@ class SpawnerEntity(EngineEntity):
 
     def __init__(
         self,
-        engine: Engine,
+        engine: EngineProtocol,
         spawn_rate: float = 10.0,
         max_entities: int = 100,
     ):

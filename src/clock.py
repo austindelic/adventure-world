@@ -15,6 +15,8 @@ class ClockProtocol(Protocol):
     @property
     def frame(self) -> int: ...
 
+    def tick(self) -> None: ...
+
 
 class Clock(ClockProtocol):
     def __init__(self) -> None:

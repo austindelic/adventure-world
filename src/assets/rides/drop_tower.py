@@ -33,6 +33,7 @@ _BASE_LOWER: Frame = [
             Point(0.0586, 0.001),
         ],
         "mediumturquoise",
+        edgecolor="black",
     )
 ]
 

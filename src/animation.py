@@ -186,7 +186,7 @@ class Fill:
     points: list[Point]
     color: CSSColorName
     alpha: float = 1.0
-    edgecolor: str | None = None
+    edgecolor: str | None = "black"
 
 
 type Draw = Segment | Fill

@@ -201,9 +201,9 @@ class Animation:
 
     def _get_index(
         self, frame_clock: int, animation_fps: int, engine_fps: int = 24
-    ) -> int:
+    ) -> int | None:
         if not self.frames:
-            raise IndexError("No frames available.")
+            return None
         fps_ratio = animation_fps / engine_fps
         anim_frame = int(frame_clock * fps_ratio)
         return anim_frame % len(self.frames)
@@ -211,4 +211,8 @@ class Animation:
     def get_current_frame(
         self, frame_clock: int, animation_fps: int, engine_fps: int = 24
     ) -> Frame:
-        return self.frames[self._get_index(frame_clock, animation_fps, engine_fps)]
+        frame_index = self._get_index(frame_clock, animation_fps, engine_fps)
+        if frame_index is not None:
+            return self.frames[frame_index]
+        else:
+            return []

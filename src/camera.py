@@ -3,10 +3,10 @@ from .animation import Point
 
 class Camera:
     position: Point = Point(0.0, -10)
-    height: float = 1.75  # m
+    height: float = 1.0  # m
     zoom: float = 1.0
-    x_movement_speed: float = 0.1
-    y_movement_speed: float = 0.5
+    x_movement_speed: float = 0.5
+    y_movement_speed: float = x_movement_speed
     render_distance_scale: float = 1
     horizon_speed: float = 1
 
@@ -38,3 +38,9 @@ class Camera:
             self.position.x -= self.x_movement_speed
         if "right" in keys_down:
             self.position.x += self.x_movement_speed
+        if "a" in keys_down:
+            self.x_movement_speed *= 0.9
+            self.y_movement_speed *= 0.9
+        if "d" in keys_down:
+            self.x_movement_speed *= 1.1
+            self.y_movement_speed *= 1.1

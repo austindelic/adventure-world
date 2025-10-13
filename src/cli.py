@@ -4,10 +4,11 @@ from typing import Optional
 
 import json
 
-from .animation import Point
+from .animation import Animation, Point, Segment
 from .assets.person import Person
 from .scenario import RulesModel, ScenarioModel
 from .engine import Engine
+from .spawner import SpawnerEntity
 
 
 @click.command()
@@ -58,6 +59,10 @@ def cli(interactive_mode: bool, input_file_name: Optional[str]):
     scenario = model.build()
     click.echo("\n✅ Scenario loaded successfully!")
     engine: Engine = Engine(scenario)
-    for number in range(0, 10, 1):
-        engine.add_engine_objects([Person(Point(0, number / 100))])
+    # spawner = SpawnerEntity(
+    #     engine=engine,
+    #     spawn_rate=1.5,
+    #     max_entities=5,
+    # )
+    # engine.entities.append(spawner)
     engine.run()

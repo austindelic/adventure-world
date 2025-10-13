@@ -60,6 +60,15 @@
       },
       "max_capacity": 16,
       "ride_time": 30
+    },
+    {
+      "type": "DropTower",
+      "position": {
+        "x": 10,
+        "y": 10
+      },
+      "max_capacity": 16,
+      "ride_time": 30
     }
   ]
 }

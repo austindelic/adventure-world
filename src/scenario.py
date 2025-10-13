@@ -1,12 +1,14 @@
 # scenario_models.py
-from pydantic import BaseModel, Field
 from typing import List, Literal
 
+from pydantic import BaseModel, Field
+
+from src.animation import Point
 
 from .assets.backgrounds import Day
-from .entity import EngineEntity
 from .assets.rides import FerrisWheel, PirateShip
-from src.animation import Point
+from .assets.rides.drop_tower import DropTower
+from .entity import EngineEntity
 
 
 class MapPositionModel(BaseModel):
@@ -15,7 +17,7 @@ class MapPositionModel(BaseModel):
 
 
 class RideModel(BaseModel):
-    type: Literal["FerrisWheel", "PirateShip"]
+    type: Literal["FerrisWheel", "PirateShip", "DropTower"]
     position: MapPositionModel
     max_capacity: int = Field(..., ge=0)
     ride_time: float = Field(..., ge=0)
@@ -71,6 +73,12 @@ class ScenarioModel(BaseModel):
             elif ride_data.type == "PirateShip":
                 engine_entity_rides.append(
                     PirateShip(
+                        position=Point(ride_data.position.x, ride_data.position.y)
+                    )
+                )
+            elif ride_data.type == "DropTower":
+                engine_entity_rides.append(
+                    DropTower(
                         position=Point(ride_data.position.x, ride_data.position.y)
                     )
                 )

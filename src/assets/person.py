@@ -257,7 +257,8 @@ class Person(EngineEntity):
         if self.state is PersonState.WALKING:
             # reassign a NEW Point (Point is frozen/immutable)
             self.position = Point(
-                self.position.x + self._speed * clock.dt, self.position.y
+                self.position.x + self._speed * clock.dt,
+                self.position.y + self._speed * clock.dt,
             )
         else:
             # idle: no movement

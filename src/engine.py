@@ -1,15 +1,17 @@
 from __future__ import annotations
+
 import time
-import matplotlib.pyplot as plt
-from matplotlib.patches import Polygon
-from src.assets.person import Person
-from src.scenario import Scenario
 
 import matplotlib.image as mpimg
-from .animation import Frame, Point, Segment, Fill
+import matplotlib.pyplot as plt
+from matplotlib.patches import Polygon
+
+from src.scenario import Scenario
+
+from .animation import Fill, Frame, Point, Segment
 from .camera import Camera
-from .entity import EngineEntity
 from .clock import Clock
+from .entity import EngineEntity
 
 
 class Engine:
@@ -89,8 +91,8 @@ class Engine:
         frame = entity.get_frame(self.clock.frame, self.fps_target)
 
         EPS = 1e-6
-        HEIGHT_SCALE_FACTOR = 0.85  # eye level
-        WORLD_X_FACTOR = 0.2
+        HEIGHT_SCALE_FACTOR = 1  # eye level
+        WORLD_X_FACTOR = 0.1  # 1:1
         PAD = 1e-6  # tiny tolerance to avoid edge popping
 
         # Normalised viewport [0, xlim] × [0, ylim]
@@ -179,7 +181,7 @@ class Engine:
 
         # ---------- Camera & scales ----------
         pos = entity.position
-        cam_x = self.camera.position.x
+        cam_x = self.camera.position.x * WORLD_X_FACTOR
         cam_y = self.camera.position.y
         horizon_y = self.centre.y
         centre_x = self.centre.x
@@ -188,7 +190,7 @@ class Engine:
             return horizon_y - (self.camera.horizon_speed / max(distance, EPS))
 
         def _perspective_scale(distance: float) -> float:
-            return (self.camera.render_distance_scale * 10.0) / max(distance, EPS)
+            return (self.camera.render_distance_scale * 10) / max(distance, EPS)
 
         entity_h = max(EPS, float(entity.target_size.height))
         cam_h = max(EPS, float(self.camera.height) * (HEIGHT_SCALE_FACTOR * 10.0))
@@ -252,8 +254,6 @@ class Engine:
         for entity in sorted(self.entities, key=self._depth_key, reverse=True):
             frame = self._get_transformed_frame((entity))
             self._draw_frame(frame)
-
-        # Show image
 
         self.ax.set_xlim(0, self.xlim)
         self.ax.set_ylim(0, self.ylim)

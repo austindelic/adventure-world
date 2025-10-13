@@ -191,9 +191,6 @@ class Engine:
             self.fps_target = fps_target
         target_dt = 1.0 / self.fps_target
         plt.ion()
-        self.grass = mpimg.imread("grass_low.png")
-        self.sky = mpimg.imread("bg.png")
-
         while plt.fignum_exists(self.fig.number):
             frame_start = time.perf_counter()
 

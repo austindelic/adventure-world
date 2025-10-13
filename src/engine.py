@@ -87,104 +87,24 @@ class Engine:
             self.z_index += 1
 
     def _get_transformed_frame(self, entity: EngineEntity) -> Frame:
-        # TODO: FIX THIS OH GOD
         frame = entity.get_frame(self.clock.frame, self.fps_target)
 
         EPS = 1e-6
-        HEIGHT_SCALE_FACTOR = 1  # eye level
-        WORLD_X_FACTOR = 0.1  # 1:1
-        PAD = 1e-6  # tiny tolerance to avoid edge popping
+        HEIGHT_SCALE_FACTOR = 1
+        WORLD_X_FACTOR = 0.1
+        PAD = 1e-6
 
-        # Normalised viewport [0, xlim] × [0, ylim]
         xmin, xmax = 0.0, float(self.xlim)
         ymin, ymax = 0.0, float(self.ylim)
 
-        # ---------- Clipping helpers (Sutherland–Hodgman) ----------
-        def _intersect(p1: Point, p2: Point, edge: str):
-            dx, dy = (p2.x - p1.x), (p2.y - p1.y)
-            if edge == "left":
-                if abs(dx) < EPS:
-                    return None
-                t = (xmin - p1.x) / dx
-                return Point(xmin, p1.y + t * dy)
-            if edge == "right":
-                if abs(dx) < EPS:
-                    return None
-                t = (xmax - p1.x) / dx
-                return Point(xmax, p1.y + t * dy)
-            if edge == "bottom":
-                if abs(dy) < EPS:
-                    return None
-                t = (ymin - p1.y) / dy
-                return Point(p1.x + t * dx, ymin)
-            if edge == "top":
-                if abs(dy) < EPS:
-                    return None
-                t = (ymax - p1.y) / dy
-                return Point(p1.x + t * dx, ymax)
-            return None
-
-        def _inside(p: Point, edge: str) -> bool:
-            if edge == "left":
-                return p.x >= xmin - PAD
-            if edge == "right":
-                return p.x <= xmax + PAD
-            if edge == "bottom":
-                return p.y >= ymin - PAD
-            if edge == "top":
-                return p.y <= ymax + PAD
-            return True
-
-        def _clip_against_edge(poly: list[Point], edge: str) -> list[Point]:
-            if not poly:
-                return []
-            out: list[Point] = []
-            s = poly[-1]
-            s_in = _inside(s, edge)
-            for e in poly:
-                e_in = _inside(e, edge)
-                if s_in and e_in:
-                    out.append(e)
-                elif s_in and not e_in:
-                    x = _intersect(s, e, edge)
-                    if x:
-                        out.append(x)
-                elif not s_in and e_in:
-                    x = _intersect(s, e, edge)
-                    if x:
-                        out.append(x)
-                    out.append(e)
-                s, s_in = e, e_in
-            return out
-
-        def _clip_polygon(poly: list[Point]) -> list[Point]:
-            for edge in ("left", "right", "bottom", "top"):
-                poly = _clip_against_edge(poly, edge)
-                if len(poly) < 3:
-                    return []  # fully clipped
-            # prune exact duplicates
-            pruned: list[Point] = []
-            for p in poly:
-                if (
-                    not pruned
-                    or abs(pruned[-1].x - p.x) > EPS
-                    or abs(pruned[-1].y - p.y) > EPS
-                ):
-                    pruned.append(p)
-            if (
-                len(pruned) >= 2
-                and abs(pruned[0].x - pruned[-1].x) < EPS
-                and abs(pruned[0].y - pruned[-1].y) < EPS
-            ):
-                pruned.pop()
-            return pruned
-
-        # ---------- Camera & scales ----------
         pos = entity.position
         cam_x = self.camera.position.x * WORLD_X_FACTOR
         cam_y = self.camera.position.y
         horizon_y = self.centre.y
         centre_x = self.centre.x
+        distance = pos.y - cam_y
+        if distance + EPS <= 0:
+            return []
 
         def _project_ground_y(distance: float) -> float:
             return horizon_y - (self.camera.horizon_speed / max(distance, EPS))
@@ -196,16 +116,13 @@ class Engine:
         cam_h = max(EPS, float(self.camera.height) * (HEIGHT_SCALE_FACTOR * 10.0))
         height_ratio = entity_h / cam_h
 
-        distance = max(EPS, pos.y - cam_y)
         base_scale = _perspective_scale(distance)
-        parallax_scale = base_scale  # where the object is (world translation)
-        shape_scale = base_scale * height_ratio  # how big the object appears
+        parallax_scale = base_scale
+        shape_scale = base_scale * height_ratio
         y_base = _project_ground_y(distance)
 
         def _to_screen(local_x: float, local_y: float) -> Point:
-            world_x = (
-                pos.x * WORLD_X_FACTOR - cam_x
-            ) * parallax_scale  # size-independent
+            world_x = (pos.x * WORLD_X_FACTOR - cam_x) * parallax_scale
             x_screen = centre_x + world_x + local_x * shape_scale
             y_screen = y_base + local_y * shape_scale
             return Point(x_screen, y_screen)
@@ -215,19 +132,16 @@ class Engine:
                 ymax + PAD
             )
 
-        # ---------- Transform & clip ----------
         transformed: Frame = []
         for draw in frame:
             if isinstance(draw, Segment):
                 s = _to_screen(draw.start.x, draw.start.y)
                 e = _to_screen(draw.end.x, draw.end.y)
-                # Keep if any endpoint is visible (cheap). Clip if you want more accuracy.
                 if _in_view(s) or _in_view(e):
                     transformed.append(Segment(start=s, end=e, line=draw.line))
 
             elif isinstance(draw, Fill):
                 pts = [_to_screen(p.x, p.y) for p in draw.points]
-                pts = _clip_polygon(pts)
                 if len(pts) >= 3:
                     transformed.append(
                         Fill(

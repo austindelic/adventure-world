@@ -9,15 +9,13 @@ input, update, and drawing with matplotlib.
 import time
 from typing import Protocol
 
-import matplotlib.pyplot as plt
-from matplotlib.patches import Polygon
-
 from src.scenario import Scenario
 
 from .animation import Fill, Frame, Point, Segment
 from .camera import Camera
 from .clock import Clock, ClockProtocol
 from .entity import EngineEntity
+from .renderer import MatplotlibRenderer, RendererProtocol
 
 
 class EngineProtocol(Protocol):
@@ -34,33 +32,35 @@ class EngineProtocol(Protocol):
     def _update_all(self) -> None: ...
 
     # --- Rendering (optional) ---
-    def _draw_scene(self) -> None: ...
     def run(self, fps_target: int | None = None) -> None: ...
+
+    # renderer hooks
+    @property
+    def keys_down(self) -> set[str]: ...
+    def depth_key(self, e: EngineEntity) -> float: ...
+    def on_key_press(self, key: str) -> None: ...
+    def on_key_release(self, key: str) -> None: ...
 
 
 class Engine(EngineProtocol):
     def __init__(self, scenario: Scenario) -> None:
         self.rides = scenario.rides
         self.entities: list[EngineEntity] = scenario.rides
-        self.background: EngineEntity = scenario.background
-        self.xlim = 1
-        self.ylim = self.xlim
+        self.background: EngineEntity | None = scenario.background
+        self.xlim: float = 1.0
+        self.ylim: float = self.xlim
         self.fps_target = scenario.rules.target_fps
-        self.clock = Clock()
+        self.clock: ClockProtocol = Clock()
         self.camera = Camera()
-        self.fig, self.ax = plt.subplots()
-
-        self.ax.autoscale(True)
         self.centre = Point(self.xlim / 2, self.ylim / 2)
         self._move_speed = 1.0
         self._zoom_rate = 1.5
         self._rot_speed = 1.0
         self._keys_down: set[str] = set()
-
-        self.fig.canvas.mpl_connect("key_press_event", self._on_key_press)
-        self.fig.canvas.mpl_connect("key_release_event", self._on_key_release)
-        self.cull_pad_frac = 0.05
-        self.z_index = 0
+        self.renderer: RendererProtocol = MatplotlibRenderer()
+        # hook input to renderer window
+        if isinstance(self.renderer, MatplotlibRenderer):
+            self.renderer.attach_input(self)
 
     # ---------- Input Handling ----------
     def add_engine_objects(self, engine_objects: list[EngineEntity]) -> None:
@@ -72,134 +72,16 @@ class Engine(EngineProtocol):
         # Larger positive => farther away (back). Use camera-relative y.
         return e.position.y - self.camera.position.y
 
-    def _on_key_press(self, event):
-        k = (event.key or "").lower()
-        if k == "escape":
-            plt.close(self.fig)
-            return
-        self._keys_down.add(k)
+    def on_key_press(self, key: str) -> None:
+        self._keys_down.add(key)
 
-    def _on_key_release(self, event):
-        k = (event.key or "").lower()
-        self._keys_down.discard(k)
+    def on_key_release(self, key: str) -> None:
+        self._keys_down.discard(key)
 
-    def _draw_frame(self, frame: Frame):
-        for draw in frame:
-            if isinstance(draw, Segment):
-                self.ax.plot(
-                    [draw.start.x, draw.end.x],
-                    [draw.start.y, draw.end.y],
-                    color=draw.line.color,
-                    linestyle=draw.line.style,
-                    marker=draw.line.marker,
-                    linewidth=draw.line.weight,
-                    alpha=draw.line.alpha,
-                    scalex=False,  # <-- stop x autoscale
-                    scaley=False,
-                    zorder=self.z_index,
-                )
-            elif isinstance(draw, Fill):
-                poly = Polygon(
-                    [(p.x, p.y) for p in draw.points],
-                    closed=True,
-                    facecolor=draw.color,
-                    edgecolor=draw.edgecolor or draw.color,
-                    alpha=draw.alpha,
-                    zorder=self.z_index,
-                )
-                self.ax.add_patch(poly)
-            self.z_index += 1
-
-    def _get_transformed_frame(self, entity: EngineEntity) -> Frame:
-        frame = entity.get_frame(self.clock.frame, self.fps_target)
-
-        # Small constants for numerical safety and projection tuning
-        EPS = 1e-6
-        HEIGHT_SCALE_FACTOR = 1
-        WORLD_X_FACTOR = 0.1
-        PAD = 1e-6
-
-        xmin, xmax = 0.0, float(self.xlim)
-        ymin, ymax = 0.0, float(self.ylim)
-
-        pos = entity.position
-        cam_x = self.camera.position.x * WORLD_X_FACTOR
-        cam_y = self.camera.position.y
-        horizon_y = self.centre.y
-        centre_x = self.centre.x
-        distance = pos.y - cam_y
-        if distance + EPS <= 0:
-            return []
-
-        def _project_ground_y(distance: float) -> float:
-            return horizon_y - (self.camera.horizon_speed / max(distance, EPS))
-
-        def _perspective_scale(distance: float) -> float:
-            return (self.camera.render_distance_scale * 10) / max(distance, EPS)
-
-        entity_h = max(EPS, float(entity.target_size.height))
-        cam_h = max(EPS, float(self.camera.height) * (HEIGHT_SCALE_FACTOR * 10.0))
-        height_ratio = entity_h / cam_h
-
-        base_scale = _perspective_scale(distance)
-        parallax_scale = base_scale
-        shape_scale = base_scale * height_ratio
-        y_base = _project_ground_y(distance)
-
-        def _to_screen(local_x: float, local_y: float) -> Point:
-            world_x = (pos.x * WORLD_X_FACTOR - cam_x) * parallax_scale
-            x_screen = centre_x + world_x + local_x * shape_scale
-            y_screen = y_base + local_y * shape_scale
-            return Point(x_screen, y_screen)
-
-        def _in_view(p: Point) -> bool:
-            return (xmin - PAD) <= p.x <= (xmax + PAD) and (ymin - PAD) <= p.y <= (
-                ymax + PAD
-            )
-
-        transformed: Frame = []
-        for draw in frame:
-            if isinstance(draw, Segment):
-                s = _to_screen(draw.start.x, draw.start.y)
-                e = _to_screen(draw.end.x, draw.end.y)
-                if _in_view(s) or _in_view(e):
-                    transformed.append(Segment(start=s, end=e, line=draw.line))
-
-            elif isinstance(draw, Fill):
-                pts = [_to_screen(p.x, p.y) for p in draw.points]
-                if len(pts) >= 3:
-                    transformed.append(
-                        Fill(
-                            points=pts,
-                            color=draw.color,
-                            alpha=min(1.0, draw.alpha),
-                            edgecolor=draw.edgecolor,
-                        )
-                    )
-
-        return transformed
-
-    def _draw_scene(self):
-        self.ax.clear()
-        self.camera.update_from_input(self._keys_down, self.clock.dt)
-
-        # Background first (no camera transforms)
-        if self.background:
-            self._draw_frame(
-                self.background.get_frame(self.clock.frame, self.fps_target)
-            )
-
-        # Entities back-to-front
-        for entity in sorted(self.entities, key=self._depth_key, reverse=True):
-            frame = self._get_transformed_frame((entity))
-            self._draw_frame(frame)
-
-        self.ax.set_xlim(0, self.xlim)
-        self.ax.set_ylim(0, self.ylim)
-        self.ax.set_aspect("equal", adjustable="box")
-        self.fig.canvas.draw_idle()
-        self.fig.canvas.flush_events()
-        self.z_index = 0
+    # Renderer drives drawing; expose helpers used by renderer
+    @property
+    def keys_down(self) -> set[str]:
+        return self._keys_down
 
     # ---------- Update Cycle ----------
     def _update_all(self):
@@ -215,16 +97,17 @@ class Engine(EngineProtocol):
         if fps_target is not None:
             self.fps_target = fps_target
         target_dt = 1.0 / self.fps_target
+        import matplotlib.pyplot as plt
+
         plt.ion()
-        while plt.fignum_exists(self.fig.number):
+        while self.renderer.is_open():
             frame_start = time.perf_counter()
 
             # Tick timing
             self.clock.tick()
 
-            # ---- Collect + Draw all ----
-            #
-            self._draw_scene()
+            # ---- Collect + Draw all via renderer ----
+            self.renderer.render(self)
             # ---- Update after draw ----
             self._update_all()
 

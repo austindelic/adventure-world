@@ -10,8 +10,6 @@ Note: This module intentionally performs no heavy work at import time.
 from __future__ import annotations
 
 import json
-from typing import Optional
-
 import click
 from click_option_group import RequiredMutuallyExclusiveOptionGroup, optgroup
 
@@ -39,7 +37,7 @@ from src.scenario import RulesModel, ScenarioModel
     type=click.Path(exists=True, dir_okay=False, path_type=str),
     help="Path to a scenario JSON file",
 )
-def cli(interactive_mode: bool, input_file_name: Optional[str]):
+def cli(interactive_mode: bool, input_file_name: str | None):
     """Entry point for the CLI.
 
     Exactly one of --interactive or --file must be provided.

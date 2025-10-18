@@ -1,4 +1,3 @@
- (The file `/Users/AustinDe/projects/adventure-world/README.md` exists, but is empty)
 # Adventure World
 
 A tiny 2D amusement-park scene renderer using matplotlib. Entities are built from simple vector primitives and animated via frame timing.
@@ -25,13 +24,6 @@ just run
 
 ## Development
 
-Tools are configured in `pyproject.toml`.
-
-```bash
-just format   # black
-just lint     # ruff
-just typecheck# mypy (light)
-```
 
 Project layout:
 

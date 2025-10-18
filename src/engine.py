@@ -11,11 +11,12 @@ from typing import Protocol
 
 from src.scenario import Scenario
 
-from .animation import Fill, Frame, Point, Segment
+from .animation import Point
 from .camera import Camera
 from .clock import Clock, ClockProtocol
 from .entity import EngineEntity
 from .renderer import MatplotlibRenderer, RendererProtocol
+from .spawner import SpawnerEntity
 
 
 class EngineProtocol(Protocol):
@@ -44,12 +45,14 @@ class EngineProtocol(Protocol):
 
 class Engine(EngineProtocol):
     def __init__(self, scenario: Scenario) -> None:
-        self.rides = scenario.rides
-        self.entities: list[EngineEntity] = scenario.rides
+        self.rides = list(scenario.rides)
+        self.entities: list[EngineEntity] = list(scenario.rides)
         self.background: EngineEntity | None = scenario.background
         self.xlim: float = 1.0
         self.ylim: float = self.xlim
         self.fps_target = scenario.rules.target_fps
+        self.max_guests = scenario.rules.max_guests
+        self.spawn_rate = scenario.rules.spawn_rate
         self.clock: ClockProtocol = Clock()
         self.camera = Camera()
         self.centre = Point(self.xlim / 2, self.ylim / 2)
@@ -58,6 +61,16 @@ class Engine(EngineProtocol):
         self._rot_speed = 1.0
         self._keys_down: set[str] = set()
         self.renderer: RendererProtocol = MatplotlibRenderer()
+
+        # Guest spawner
+        self.spawner = SpawnerEntity(
+            engine=self,
+            position=Point(0.5, 0.05),
+            spawn_rate=self.spawn_rate,
+            max_guests=self.max_guests,
+        )
+        self.entities.append(self.spawner)
+
         # hook input to renderer window
         if isinstance(self.renderer, MatplotlibRenderer):
             self.renderer.attach_input(self)

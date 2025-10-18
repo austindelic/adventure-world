@@ -1,6 +1,12 @@
+"""Entity base classes and geometry helpers.
+
+EngineEntity holds pose and an Animation, and exposes get_frame/update hooks.
+"""
+
 from dataclasses import dataclass
 from typing import Iterable
-from .animation import Segment, Point, Animation, Frame, Fill
+
+from .animation import Animation, Fill, Frame, Point, Segment
 from .clock import ClockProtocol
 
 EPS = 1e-9
@@ -101,4 +107,5 @@ class EngineEntity:
 
     # ---------- Behaviour ----------
     def update(self, clock: ClockProtocol) -> None:
+        """Optional per-frame behavior; default does nothing."""
         pass

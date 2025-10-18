@@ -1,6 +1,8 @@
 """
-File: time.py
-Author: Austin Delic (austin@austindelic.com)
+Lightweight frame clock utilities.
+
+Exposes a simple protocol and an implementation that tracks elapsed time,
+delta time, and frame count using perf_counter for high-resolution timing.
 """
 
 from typing import Protocol

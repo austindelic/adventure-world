@@ -1,9 +1,14 @@
 from __future__ import annotations
 
+"""Main render/update engine for Adventure World.
+
+This module wires together the clock, camera, and entities, handling
+input, update, and drawing with matplotlib.
+"""
+
 import time
 from typing import Protocol
 
-import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
 from matplotlib.patches import Polygon
 
@@ -108,6 +113,7 @@ class Engine(EngineProtocol):
     def _get_transformed_frame(self, entity: EngineEntity) -> Frame:
         frame = entity.get_frame(self.clock.frame, self.fps_target)
 
+        # Small constants for numerical safety and projection tuning
         EPS = 1e-6
         HEIGHT_SCALE_FACTOR = 1
         WORLD_X_FACTOR = 0.1

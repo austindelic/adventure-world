@@ -1,6 +1,9 @@
-"""
-File: animation.py
-Author: Austin Delic (austin@austindelic.com)
+"""Geometry primitives and sprite animation.
+
+Defines simple vector-graphics primitives (Point, Segment, Fill) and
+an Animation container that returns frames at a requested playback fps.
+All coordinates are normalised to [0, 1] space by convention and are
+converted to world/screen space by the engine.
 """
 
 from dataclasses import dataclass

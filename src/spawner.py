@@ -1,9 +1,15 @@
+"""Spawner entity that can add/remove entities at runtime.
+
+Non-functional: adds types and docstrings only.
+"""
+
 from __future__ import annotations
 
 from .animation import Animation, Line, Point, Segment
 from .assets.person import Person
 from .engine import EngineProtocol
 from .entity import EngineEntity
+from .clock import ClockProtocol
 
 
 class SpawnerEntity(EngineEntity):
@@ -28,7 +34,7 @@ class SpawnerEntity(EngineEntity):
         self._time_since_last_spawn = 0.0
         self.spawned_entities: list[EngineEntity] = []
 
-    def update(self, clock) -> None:
+    def update(self, clock: ClockProtocol) -> None:
         """Called every frame by the engine."""
         super().update(clock)
         self._time_since_last_spawn += clock.dt

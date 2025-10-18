@@ -1,7 +1,15 @@
+"""Camera model handling panning and simple depth illusion.
+
+This camera is extremely lightweight and intended for a 2D scene with a
+parallax-like depth cue provided by y-position.
+"""
+
 from .animation import Point
 
 
 class Camera:
+    """Mutable camera state and update logic."""
+
     position: Point = Point(0.0, -10)
     height: float = 1.0  # m
     zoom: float = 1.0
@@ -16,9 +24,11 @@ class Camera:
         self.position.y += dy
 
     def set_pos(self, x: float, y: float) -> None:
+        """Set camera position to absolute coordinates."""
         self.position = Point(x, y)
 
     def set_zoom(self, zoom: float) -> None:
+        """Clamp and set zoom, preventing non-positive values."""
         self.zoom = max(1e-6, zoom)
 
     # ---------- New movement logic ---------- #

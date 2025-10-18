@@ -1,3 +1,8 @@
+"""Background assets.
+
+Day: sky and ground as static fills.
+"""
+
 from src.animation import Animation, Fill, Frame, Point
 from src.entity import EngineEntity, Size
 
@@ -14,7 +19,7 @@ class Day(EngineEntity):
                 Point(1.0, 1.0),
                 Point(0.0, 1.0),
             ],
-            color="b",
+            color="blue",
             alpha=1.0,
         )
 
@@ -26,7 +31,7 @@ class Day(EngineEntity):
                 Point(1.0, 0.5),
                 Point(0.0, 0.5),
             ],
-            color="g",
+            color="green",
             alpha=1.0,
         )
 

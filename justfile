@@ -14,4 +14,3 @@ run-bin:
 		python3 -m nuitka --onefile --lto=yes --clang --python-flag=-O main.py; \
 		./main.bin; \
 	fi
-

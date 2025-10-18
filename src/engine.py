@@ -72,6 +72,10 @@ class Engine(EngineProtocol):
         # Larger positive => farther away (back). Use camera-relative y.
         return e.position.y - self.camera.position.y
 
+    def depth_key(self, e: EngineEntity) -> float:
+        """Public depth sorting key for renderer."""
+        return self._depth_key(e)
+
     def on_key_press(self, key: str) -> None:
         self._keys_down.add(key)
 
